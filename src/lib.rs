@@ -33,17 +33,22 @@ impl World {
     }
 
     fn get_possible_next_positions(&self, current_position: Position) -> Vec<Position> {
-        let mut possible_next_positions = vec![];
+        let mut possible_next_positions = vec![current_position];
         let movement_distance = 1;
         for x in 0..self.size {
             for y in 0..self.size {
                 let potential_new_position = Position::new(x,y);
+                if self.occupied(potential_new_position) {continue;}
                 if potential_new_position.get_distance_to(current_position) <= movement_distance {
                     possible_next_positions.push(potential_new_position);
                 }
             }
         }
         possible_next_positions
+    }
+
+    fn occupied(&self, position: Position) -> bool {
+        self.map.contains_key(&position)
     }
 }
 
@@ -111,6 +116,31 @@ mod tests {
 
         let possible_next_positions = world.get_possible_next_positions(current_position);
         let expected_possible_next_positions = vec![Position::new(0,0), Position::new(0,1), Position::new(1,0)];
+
+        assert_eq!(expected_possible_next_positions, possible_next_positions);
+    }
+
+    #[test]
+    fn world_occupied() {
+        let mut world = World::new();
+        let soldier1 = Unit::soldier();
+        let current_position = Position::new(0,0);
+        world.insert_unit(soldier1, current_position);
+
+        assert!(world.occupied(current_position));
+        assert!(!world.occupied(Position::new(1,1)));
+    }
+
+    #[test]
+    fn world_get_possible_next_positions_cannot_move_to_occupied_location() {
+        let mut world = World::new();
+        let soldier1 = Unit::soldier();
+        let current_position = Position::new(0,0);
+        world.insert_unit(soldier1, current_position);
+        world.insert_unit(Unit::soldier(), Position::new(0,1));
+
+        let possible_next_positions = world.get_possible_next_positions(current_position);
+        let expected_possible_next_positions = vec![Position::new(0,0), Position::new(1,0)];
 
         assert_eq!(expected_possible_next_positions, possible_next_positions);
     }

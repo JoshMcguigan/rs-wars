@@ -50,6 +50,22 @@ impl World {
     fn occupied(&self, position: Position) -> bool {
         self.map.contains_key(&position)
     }
+
+    fn move_unit(&mut self, current_position: Position, new_position: Position) -> bool {
+        let movement_distance = 1;
+
+        if !self.occupied(current_position) ||
+            self.occupied(new_position) ||
+            current_position.get_distance_to(new_position) > movement_distance {
+
+            return false
+        }
+
+        let unit = self.map.remove(&current_position).unwrap();
+        self.map.insert(new_position, unit);
+
+        true
+    }
 }
 
 struct Unit;
@@ -143,5 +159,33 @@ mod tests {
         let expected_possible_next_positions = vec![Position::new(0,0), Position::new(1,0)];
 
         assert_eq!(expected_possible_next_positions, possible_next_positions);
+    }
+
+    #[test]
+    fn world_move_success() {
+        let mut world = World::new();
+        let soldier1 = Unit::soldier();
+        let current_position = Position::new(0,0);
+        world.insert_unit(soldier1, current_position);
+        let new_position = Position::new(0,1);
+
+        let success = world.move_unit(current_position, new_position);
+        assert!(success);
+        assert!(world.occupied(new_position));
+        assert!(!world.occupied(current_position));
+    }
+
+    #[test]
+    fn world_move_too_far() {
+        let mut world = World::new();
+        let soldier1 = Unit::soldier();
+        let current_position = Position::new(0,0);
+        world.insert_unit(soldier1, current_position);
+        let new_position = Position::new(3,3);
+
+        let success = world.move_unit(current_position, new_position);
+        assert!(!success);
+        assert!(!world.occupied(new_position));
+        assert!(world.occupied(current_position));
     }
 }

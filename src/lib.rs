@@ -1,3 +1,5 @@
+mod unit;
+use unit::Unit;
 use std::collections::HashMap;
 
 struct World{
@@ -65,14 +67,6 @@ impl World {
         self.map.insert(new_position, unit);
 
         true
-    }
-}
-
-struct Unit;
-
-impl Unit {
-    fn soldier() -> Unit {
-        Unit
     }
 }
 

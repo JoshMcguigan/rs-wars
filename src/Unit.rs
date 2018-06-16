@@ -1,6 +1,7 @@
 pub struct Unit {
     health: u16,
     attack: f32,
+    defense: f32
 }
 
 impl Unit {
@@ -8,12 +9,14 @@ impl Unit {
         Unit {
             health: 10,
             attack: 2f32,
+            defense: 1f32,
         }
     }
     pub fn tank() -> Unit {
         Unit {
             health: 10,
             attack: 4f32,
+            defense: 2f32,
         }
     }
 
@@ -35,8 +38,10 @@ impl Unit {
     }
 
     pub fn attack(&mut self, other: &mut Unit) {
-        other.take_damage(self.get_attack() as u16);
-        self.take_damage((other.get_attack() / 2f32) as u16);
+        let other_damage = (self.get_attack() / other.defense) as u16;
+        other.take_damage(other_damage);
+        let self_damage = ((other.get_attack() / self.defense) / 2f32) as u16;
+        self.take_damage(self_damage);
     }
 }
 
@@ -124,6 +129,20 @@ mod tests {
         let half_health_damage = 10 - unit1.get_health();
 
         assert!(full_health_damage > half_health_damage);
+    }
+
+    #[test]
+    fn attack_tank_defense_is_greater_than_soldier_defense(){
+        let mut attacking_tank = Unit::tank();
+        let mut defending_soldier = Unit::soldier();
+        let mut defending_tank = Unit::tank();
+
+        attacking_tank.attack(&mut defending_soldier);
+
+        attacking_tank = Unit::tank();
+        attacking_tank.attack(&mut defending_tank);
+
+        assert!(defending_tank.get_health() > defending_soldier.get_health());
     }
 
 }

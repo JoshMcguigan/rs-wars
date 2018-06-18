@@ -37,11 +37,13 @@ impl Unit {
         self.is_alive()
     }
 
-    pub fn attack(&mut self, other: &mut Unit) {
+    pub fn attack(&mut self, other: &mut Unit) -> (bool, bool) {
         let other_damage = (self.get_attack() / other.defense) as u16;
         other.take_damage(other_damage);
         let self_damage = ((other.get_attack() / self.defense) / 2f32) as u16;
         self.take_damage(self_damage);
+
+        (self.is_alive(), other.is_alive())
     }
 }
 
@@ -143,6 +145,20 @@ mod tests {
         attacking_tank.attack(&mut defending_tank);
 
         assert!(defending_tank.get_health() > defending_soldier.get_health());
+    }
+
+    #[test]
+    fn attack_returns_alive_state(){
+        let mut tank = Unit::tank();
+        let mut soldier = Unit::soldier();
+
+        assert_eq!((true, true), soldier.attack(&mut tank));
+
+        tank = Unit::tank();
+        soldier = Unit::soldier();
+        soldier.take_damage(9);
+
+        assert_eq!((true, false), tank.attack(&mut soldier));
     }
 
 }

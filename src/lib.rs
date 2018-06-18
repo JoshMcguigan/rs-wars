@@ -68,6 +68,18 @@ impl World {
 
         true
     }
+
+    fn attack(&mut self, attack_position: Position, defend_position: Position) {
+        let mut attacker = self.map.remove(&attack_position)
+            .expect("No unit found at attack position");
+        let mut defender = self.map.remove(&defend_position)
+            .expect("No unit found at defense position");
+
+        let (attacker_is_alive, defender_is_alive) = attacker.attack(&mut defender);
+
+        if attacker_is_alive { self.map.insert(attack_position, attacker); }
+        if defender_is_alive { self.map.insert(defend_position, defender); }
+    }
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
@@ -181,5 +193,52 @@ mod tests {
         assert!(!success);
         assert!(!world.occupied(new_position));
         assert!(world.occupied(current_position));
+    }
+
+    #[test]
+    fn world_attack_no_units_removed(){
+        let mut world = World::new();
+        let mut soldier = Unit::soldier();
+        let tank = Unit::tank();
+        let soldier_position = Position::new(0,0);
+        let tank_position = Position::new(0,1);
+
+        world.insert_unit(soldier, soldier_position);
+        world.insert_unit(tank, tank_position);
+
+        world.attack(tank_position, soldier_position);
+        assert_eq!(2, world.map.len());
+    }
+
+    #[test]
+    fn world_attack_killed_defender_is_removed(){
+        let mut world = World::new();
+        let mut soldier = Unit::soldier();
+        soldier.take_damage(9);
+        let tank = Unit::tank();
+        let soldier_position = Position::new(0,0);
+        let tank_position = Position::new(0,1);
+
+        world.insert_unit(soldier, soldier_position);
+        world.insert_unit(tank, tank_position);
+
+        world.attack(tank_position, soldier_position);
+        assert_eq!(1, world.map.len());
+    }
+
+    #[test]
+    fn world_attack_killed_attacker_is_removed(){
+        let mut world = World::new();
+        let mut soldier = Unit::soldier();
+        soldier.take_damage(9);
+        let tank = Unit::tank();
+        let soldier_position = Position::new(0,0);
+        let tank_position = Position::new(0,1);
+
+        world.insert_unit(soldier, soldier_position);
+        world.insert_unit(tank, tank_position);
+
+        world.attack(soldier_position, tank_position);
+        assert_eq!(1, world.map.len());
     }
 }

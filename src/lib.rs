@@ -70,6 +70,8 @@ impl World {
     }
 
     fn attack(&mut self, attack_position: Position, defend_position: Position) {
+        if attack_position.get_distance_to(defend_position) > 1 {return;}
+
         let mut attacker = self.map.remove(&attack_position)
             .expect("No unit found at attack position");
         let mut defender = self.map.remove(&defend_position)
@@ -240,5 +242,22 @@ mod tests {
 
         world.attack(soldier_position, tank_position);
         assert_eq!(1, world.map.len());
+    }
+
+    #[test]
+    fn world_attack_out_of_range(){
+        let mut world = World::new();
+        let mut soldier = Unit::soldier();
+        soldier.take_damage(9);
+        let tank = Unit::tank();
+        let soldier_position = Position::new(0,0);
+        let tank_position = Position::new(2,2);
+
+        world.insert_unit(soldier, soldier_position);
+        world.insert_unit(tank, tank_position);
+
+        world.attack(tank_position, soldier_position);
+        // soldier is not killed because he is out of range of the tank
+        assert_eq!(2, world.map.len());
     }
 }
